@@ -1,5 +1,9 @@
-require('dotenv').config({ path: '../.env' });
+const express = require("express");
+require('dotenv').config();
 const mysql = require('mysql2');
+
+const app = express();
+const port = process.env.PORT || 3000;
 
 // Connect to MySQL database
 const connection = mysql.createConnection({
@@ -20,3 +24,17 @@ connection.connect(err => {
     console.log('Successfully connected to the database')
 });
 
+app.get("/", (req, res) => {
+    connection.query("SELECT 1 + 1 AS result", (err, results) => {
+        if (err) {
+            res.send("Error connecting to database");
+        } else {
+            res.send("Connected to database, result of 1 + 1 is: " + results[0].result);
+        }
+    });
+});
+
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
