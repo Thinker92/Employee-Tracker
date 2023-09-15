@@ -34,6 +34,7 @@ function mainMenu(connection) {
                 break;
             case 'Add a department':
                 // Function to add a department
+                addDepartment(connection);
                 break;
             case 'Add a role':
                 // Function to add a role
@@ -91,5 +92,25 @@ function viewAllEmployees(connection) {
     });
 }
 
+
+function addDepartment(connection) {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'departmentName',
+            message: 'Enter the name of the new department:',
+        }
+    ])
+    .then((answers) => {
+        const query = 'INSERT INTO department (name) VALUES (?)';
+        
+        connection.query(query, [answers.departmentName], (err, results) => {
+            if (err) throw err;
+            
+            console.log(`Added ${answers.departmentName} to departments.`);
+            mainMenu(connection);
+    });
+});
+}
 
 module.exports = { mainMenu };
