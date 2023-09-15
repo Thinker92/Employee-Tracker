@@ -46,6 +46,7 @@ function mainMenu(connection) {
                 break;
             case 'Update an employee role':
                 // Function to update an employee role
+                updateEmployeeRole(connection);
                 break;
             case 'Exit':
                 connection.end();
@@ -202,5 +203,52 @@ function addEmployee(connection) {
             })
         })
 })}
+
+function updateEmployeeRole(connection) {
+    connection.query('SELECT * FROM employee', (err, employees) => {
+        if (err) throw err;
+
+        connection.query('SELECT * FROM role', (err, roles) => {
+            if (err) throw err;
+            
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'employeeId',
+                    message: 'Which employee\'s role do you want to update?',
+                    choices: employees.map(employee => ({
+                        name: `${employee.first_name} ${employee.last_name}`,
+                        value: employee.id,
+                    })),
+                },
+                {
+                    type: 'list',
+                    name: 'roleId',
+                    message: 'Which role do you want to assign to the selected employee?',
+                    choices: roles.map(role => ({
+                        name: role.title,
+                        value: role.id,
+                    })),
+                },
+            ])
+            .then((answers) => {
+                const query = `
+                    UPDATE employee
+                    SET role_id = ?
+                    WHERE id = ?;
+                `;
+                
+                connection.query(query, [answers.roleId, answers.employeeId], (err, results) => {
+                    if (err) throw err;
+                    
+                    console.log(`Successfully updated employee's role.`);
+                    
+                    mainMenu(connection);
+                });
+            });
+        });
+    });
+}
+
 
 module.exports = { mainMenu };
