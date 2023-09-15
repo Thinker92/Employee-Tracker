@@ -42,6 +42,7 @@ function mainMenu(connection) {
                 break;
             case 'Add an employee':
                 // Function to add an employee
+                addEmployee(connection);
                 break;
             case 'Update an employee role':
                 // Function to update an employee role
@@ -153,5 +154,53 @@ function addRole(connection){
         })
     })
 }
+
+function addEmployee(connection) {
+    connection.query('SELECT * FROM role', (err, roles) => {
+        if (err) throw err;
+        
+        connection.query('SELECT * FROM employee', (err, employees) => {
+            if (err) throw err;
+            
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'firstName',
+                    message: 'Enter the first name of the new employee:',
+                },
+                {
+                    type: 'input',
+                    name: 'lastName',
+                    message: 'Enter the last name of the new employee:',
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: 'Select the role of the new employee:',
+                    choices: roles.map(role => ({ name: role.title, value: role.id })),
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    message: 'Select the manager of the new employee:',
+                    choices: employees.map(employee => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.id })).concat({ name: 'None', value: null }),
+                },
+            ])
+            .then((answers) => {
+                const query = `
+                    INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                    VALUES (?, ?, ?, ?);
+                `;
+                
+                connection.query(query, [answers.firstName, answers.lastName, answers.role, answers.manager], (err, results) => {
+                    if (err) throw err;
+                    
+                    console.log(`Added ${answers.firstName} ${answers.lastName} as a new employee.`);
+                    
+                    mainMenu(connection);
+                });
+            })
+        })
+})}
 
 module.exports = { mainMenu };
