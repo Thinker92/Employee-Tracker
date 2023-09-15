@@ -30,6 +30,7 @@ function mainMenu(connection) {
                 break;
             case 'View all employees':
                 // Function to view all employees
+                viewAllEmployees(connection);
                 break;
             case 'Add a department':
                 // Function to add a department
@@ -66,4 +67,29 @@ function viewAllRoles(connection) {
     });
 }
 
-module.exports = { mainMenu, viewAllDepartments, viewAllRoles };
+function viewAllEmployees(connection) {
+    const query = `
+        SELECT 
+            e.id AS 'ID',
+            e.first_name AS 'First Name',
+            e.last_name AS 'Last Name',
+            role.title AS 'Role',
+            department.name AS 'Department',
+            role.salary AS 'Salary',
+            CONCAT(m.first_name, ' ', m.last_name) AS 'Manager'
+        FROM employee e
+        LEFT JOIN role ON e.role_id = role.id
+        LEFT JOIN department ON role.department_id = department.id
+        LEFT JOIN employee m ON e.manager_id = m.id;
+    `;
+    
+    connection.query(query, (err, results) => {
+        if (err) throw err;
+        
+        console.table(results);
+        mainMenu(connection);
+    });
+}
+
+
+module.exports = { mainMenu };
