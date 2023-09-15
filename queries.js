@@ -38,6 +38,7 @@ function mainMenu(connection) {
                 break;
             case 'Add a role':
                 // Function to add a role
+                addRole(connection);
                 break;
             case 'Add an employee':
                 // Function to add an employee
@@ -47,6 +48,7 @@ function mainMenu(connection) {
                 break;
             case 'Exit':
                 connection.end();
+                process.exit();
                 break;
         }
     });
@@ -111,6 +113,45 @@ function addDepartment(connection) {
             mainMenu(connection);
     });
 });
+}
+
+function addRole(connection){
+    connection.query('SELECT * FROM department',(err, departments) => {
+        if (err) throw err;
+
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'roleTitle',
+                message: 'Enter the title of the new role:',
+            },
+            {
+                type: 'input',
+                name: 'roleSalary',
+                message: 'Enter the salary for the new role:',
+            },
+            {
+                type: 'list',
+                name: 'roleDepartment',
+                message: 'Select the department for the new role:',
+                choices: departments.map(department => ({
+                    name: department.name,
+                    value: department.id,
+                })),
+            }
+        ])
+        .then((answers) => {
+            const query = 'INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)';
+
+            connection.query(query, [answers.roleTitle, answers.roleSalary, answers.roleDepartment], (err, results) => {
+                if (err) throw err;
+
+                console.log(`Added ${answers.roleTitle} to roles.`);
+
+                mainMenu(connection);
+            })
+        })
+    })
 }
 
 module.exports = { mainMenu };
